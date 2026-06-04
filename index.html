@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Origen x TII Data Collection Facility</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- Three.js canvas mount -->
+    <div id="scene"></div>
+
+    <!-- HTML overlay for floating 3D labels -->
+    <div id="labels"></div>
+
+    <!-- ============================================================ TOP BAR -->
+    <header class="topbar">
+      <div class="brand">
+        <img src="assets/origen-logo.png" alt="ORIGEN" class="brand-logo" />
+        <div class="brand-sub">Origen x TII Data Collection Facility</div>
+      </div>
+      <nav>
+        <button data-view="overview" class="active">Overview</button>
+        <button data-view="plan">Floor Plan</button>
+        <button data-view="stations">Stations</button>
+      </nav>
+      <div class="search">
+        <input id="search-input" type="text" placeholder="Search station, code, or task…" />
+      </div>
+      <div class="meta">
+        <div class="pulse-wrap"><span class="pulse"></span> LIVE</div>
+        <div>FACILITY 01</div>
+        <div>27 USE CASES · 48 STATIONS</div>
+      </div>
+    </header>
+
+    <!-- ============================================================ LEGEND -->
+    <aside class="legend">
+      <h3>Station Categories</h3>
+      <div id="legend-rows"></div>
+      <hr />
+      <h3>Facility Stats</h3>
+      <div class="stat"><span>Use cases</span><b>27</b></div>
+      <div class="stat"><span>Stations</span><b>48</b></div>
+      <div class="stat"><span>A2 humanoids</span><b>36</b></div>
+      <div class="stat"><span>G2 humanoids</span><b>5</b></div>
+      <div class="stat"><span>TII legged robots</span><b>7</b></div>
+      <div class="stat"><span>Operators on shift</span><b>48</b></div>
+      <div class="stat"><span>Datasets streamed</span><b>14.2 TB / day</b></div>
+    </aside>
+
+    <!-- ============================================================ CONTROLS -->
+    <div class="controls">
+      <button id="btn-3d" class="primary">
+        <span class="ico" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1 1 4v6l6 3 6-3V4L7 1z" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M1 4l6 3 6-3M7 7v6" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+        </span>
+        3D View
+      </button>
+      <button id="btn-fp">
+        <span class="ico" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="1.5" width="11" height="11" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 6h11M6 1.5v11" stroke="currentColor" stroke-width="1.2"/></svg>
+        </span>
+        Floor Plan
+      </button>
+      <button id="btn-back">
+        <span class="ico" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8 3L4 7l4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+        </span>
+        Back to Overview
+      </button>
+    </div>
+
+    <!-- ============================================================ MINIMAP -->
+    <aside class="minimap">
+      <h3>Facility Map</h3>
+      <div id="minimap-map" class="map"></div>
+    </aside>
+
+    <!-- ============================================================ STATION PICKER -->
+    <aside id="picker" class="picker hidden">
+      <header>
+        <h3 id="picker-title">All Stations</h3>
+        <button class="picker-close" aria-label="Close">✕</button>
+      </header>
+      <div id="picker-list" class="picker-list"></div>
+    </aside>
+
+    <!-- ============================================================ INFO PANEL -->
+    <section id="panel" class="panel">
+      <button class="close" aria-label="Close">✕</button>
+      <div class="preview">
+        <div class="bgwash"></div>
+        <div class="id">STATION 0A-0B</div>
+        <div class="cat">Category</div>
+        <div class="name">Station name</div>
+      </div>
+      <div class="body">
+        <p class="desc">Description.</p>
+        <div class="section">
+          <h4>Key Specs</h4>
+          <dl class="kv">
+            <dt>Robot type</dt><dd id="kv-robot">—</dd>
+            <dt>Setup count</dt><dd id="kv-count">—</dd>
+            <dt>Footprint</dt><dd id="kv-area">—</dd>
+            <dt>Telemetry</dt><dd id="kv-status">—</dd>
+          </dl>
+        </div>
+        <div class="section">
+          <h4>Equipment</h4>
+          <div id="chips-eq" class="chips"></div>
+        </div>
+        <div class="section">
+          <h4>Sensors on Robot</h4>
+          <div id="chips-sn" class="chips"></div>
+        </div>
+        <div class="section">
+          <h4>Today</h4>
+          <div class="metrics">
+            <div class="metric"><div class="num" id="m-ep">0</div><div class="label">Episodes</div></div>
+            <div class="metric"><div class="num" id="m-hr">0</div><div class="label">Robot-hours</div></div>
+            <div class="metric"><div class="num" id="m-ac">0%</div><div class="label">Success rate</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ HINT -->
+    <div id="hint" class="hint">
+      Click any station tag to inspect · <kbd>drag</kbd> to orbit · <kbd>scroll</kbd> to zoom · <kbd>Esc</kbd> to return
+    </div>
+
+    <!-- ============================================================ LOADER -->
+      <div id="loader">
+      <div class="msg"><img src="assets/origen-logo.png" alt="ORIGEN" style="height:22px;filter:brightness(0) invert(1);opacity:0.85;display:block;margin:0 auto 12px" />INITIALISING DIGITAL TWIN…</div>
+      <div class="bar"><div></div></div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
