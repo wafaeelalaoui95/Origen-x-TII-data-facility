@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Origen x TII Data Collection Facility</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+<link id="gfont-Inter" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap">
+</head>
+<body style="background-color: rgb(177, 194, 227); font-family: Inter">
+  <template id="__bundler_thumbnail" data-bg-color="#0a0c10">
+    <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1200" height="800" fill="#0a0c10"/>
+      <!-- two stacked floor plates -->
+      <g transform="translate(600 400)">
+        <g opacity="0.95">
+          <polygon points="-300,-60 0,-200 300,-60 0,80" fill="#20242c" stroke="#3a4252" stroke-width="3"/>
+          <polygon points="-300,-60 -300,-20 0,120 0,80" fill="#171a20"/>
+          <polygon points="300,-60 300,-20 0,120 0,80" fill="#11141a"/>
+        </g>
+        <g transform="translate(0 150)">
+          <polygon points="-300,-60 0,-200 300,-60 0,80" fill="#2d3138" stroke="#1aa55b" stroke-width="3"/>
+          <polygon points="-300,-60 -300,-20 0,120 0,80" fill="#1f242b"/>
+          <polygon points="300,-60 300,-20 0,120 0,80" fill="#15181d"/>
+          <circle cx="-120" cy="-40" r="14" fill="#ef8a3a"/>
+          <circle cx="-40" cy="-72" r="14" fill="#3aa56a"/>
+          <circle cx="60" cy="-44" r="14" fill="#8b5cf6"/>
+          <circle cx="120" cy="-10" r="14" fill="#e0483b"/>
+          <circle cx="20" cy="14" r="14" fill="#d4b13a"/>
+        </g>
+      </g>
+    </svg>
+  </template>
+  <div id="app">
+    <!-- Three.js canvas mount -->
+    <div id="scene"></div>
+
+    <!-- HTML overlay for floating 3D labels -->
+    <div id="labels"></div>
+
+    <!-- ============================================================ TOP BAR -->
+    <header class="topbar">
+      <div class="brand">
+        <img src="assets/origen-logo.png" alt="ORIGEN" class="brand-logo" />
+        <div class="brand-sub">Origen x TII Data Collection Facility</div>
+      </div>
+      <nav>
+        <button data-view="data" class="active">Floor 1 · Industrial</button>
+        <button data-view="support">Floor 2 · Domestic</button>
+        <button data-view="both">Building</button>
+        <button data-view="stations">Stations</button>
+      </nav>
+      <div class="search">
+        <input id="search-input" type="text" placeholder="Search station, code, or task…" />
+      </div>
+      <div class="meta">
+        <div class="pulse-wrap"><span class="pulse"></span> LIVE</div>
+        <div>FACILITY 01 · 771 m²</div>
+        <div id="meta-counts">18 STATIONS · 21 ROBOTS · 2 FLOORS</div>
+      </div>
+    </header>
+
+    <!-- ============================================================ LEGEND -->
+    <aside class="legend">
+      <h3>Scenarios</h3>
+      <div id="legend-rows"></div>
+      <hr />
+      <h3>Facility Stats</h3>
+      <div class="stat"><span>Stations</span><b id="stat-stations">18</b></div>
+      <div class="stat"><span>A2 robots</span><b id="stat-a2">18</b></div>
+      <div class="stat"><span>G2 wheeled</span><b id="stat-g2">3</b></div>
+      <div class="stat"><span>TII bipedal</span><b id="stat-tii">0</b></div>
+      <div class="stat"><span>Operators (1:1)</span><b id="stat-ops">21</b></div>
+      <div class="stat"><span>Floors</span><b>2</b></div>
+    </aside>
+
+    <!-- ============================================================ CONTROLS -->
+    <div class="controls">
+      <div class="controls-head">View Floor</div>
+      <button id="btn-floor-data" class="primary">
+        <span class="ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="8" width="11" height="4" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Floor 1 · Industrial
+      </button>
+      <button id="btn-floor-support">
+        <span class="ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2" width="11" height="4" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Floor 2 · Domestic
+      </button>
+      <button id="btn-floor-both">
+        <span class="ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1.5" y="2" width="11" height="4" stroke="currentColor" stroke-width="1.2"/><rect x="1.5" y="8" width="11" height="4" stroke="currentColor" stroke-width="1.2"/></svg></span>
+        Building · Both Floors
+      </button>
+      <button id="btn-back">
+        <span class="ico" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8 3L4 7l4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></span>
+        Reset View
+      </button>
+    </div>
+
+    <!-- ============================================================ MINIMAP -->
+    <aside class="minimap">
+      <h3>Facility Map</h3>
+      <div id="minimap-map" class="map"></div>
+    </aside>
+
+    <!-- ============================================================ STATION PICKER -->
+    <aside id="picker" class="picker hidden">
+      <header>
+        <h3 id="picker-title">All Stations</h3>
+        <button class="picker-close" aria-label="Close">✕</button>
+      </header>
+      <div id="picker-list" class="picker-list"></div>
+    </aside>
+
+    <!-- ============================================================ INFO PANEL -->
+    <section id="panel" class="panel">
+      <button class="close" aria-label="Close">✕</button>
+      <div class="preview">
+        <div class="bgwash"></div>
+        <div class="id">STATION 0A-0B</div>
+        <div class="cat">Category</div>
+        <div class="name">Station name</div>
+      </div>
+      <div class="body">
+        <p class="desc">Description.</p>
+        <div class="section">
+          <h4>Key Specs</h4>
+          <dl class="kv">
+            <dt>Robot type</dt><dd id="kv-robot">—</dd>
+            <dt>Setup count</dt><dd id="kv-count">—</dd>
+            <dt>Footprint</dt><dd id="kv-area">—</dd>
+            <dt>Telemetry</dt><dd id="kv-status">—</dd>
+          </dl>
+        </div>
+        <div class="section">
+          <h4>Equipment</h4>
+          <div id="chips-eq" class="chips"></div>
+        </div>
+        <div class="section">
+          <h4>Sensors on Robot</h4>
+          <div id="chips-sn" class="chips"></div>
+        </div>
+        <div class="section">
+          <h4>Today</h4>
+          <div class="metrics">
+            <div class="metric"><div class="num" id="m-ep">0</div><div class="label">Episodes</div></div>
+            <div class="metric"><div class="num" id="m-hr">0</div><div class="label">Robot-hours</div></div>
+            <div class="metric"><div class="num" id="m-ac">0%</div><div class="label">Success rate</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ HINT -->
+    <div id="hint" class="hint">
+      Click any station tag to inspect · <kbd>drag</kbd> to orbit · <kbd>scroll</kbd> to zoom · <kbd>Esc</kbd> to return
+    </div>
+
+    <!-- ============================================================ LOADER -->
+      <div id="loader">
+      <div class="msg"><img src="assets/origen-logo.png" alt="ORIGEN" style="height:22px;filter:brightness(0) invert(1);opacity:0.85;display:block;margin:0 auto 12px" />INITIALISING DIGITAL TWIN…</div>
+      <div class="bar"><div></div></div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
